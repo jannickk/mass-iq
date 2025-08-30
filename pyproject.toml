@@ -1,0 +1,32 @@
+[tool.poetry]
+description = "Client package to interact with the massIQ API"
+authors = ["Jannick Kappelmann <jannick.kappelmann@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+version = "1.0.0"
+
+packages = [
+    { include = "client" },
+    { include = "config" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+requests = "^2.32.5"
+aiohttp = "^3.12.15"
+pydantic-settings = "^2.10.1"
+tenacity = "^9.1.2"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.4.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "mass-iq"
+dynamic = [ "version" ]
+
+[project.urls]
+Homepage = "https://github.com/jannickk/mass-iq"
