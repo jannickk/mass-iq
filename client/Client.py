@@ -20,7 +20,7 @@ class Client:
         if parameter is None:
             return urljoin(self.__config.base_url + "/", path.lstrip("/"))
         else:
-            return urljoin(self.__config.base_url, path.lstrip("/"))+"?"+urllib.parse.urlencode(parameter)
+            return urljoin(self.__config.base_url + "/", path.lstrip("/"))+"?"+urllib.parse.urlencode(parameter)
 
     @retry(stop=stop_after_attempt(3))
     def get_access_token(self) -> str:
@@ -40,13 +40,15 @@ class Client:
 
         if response.status_code != 200:
 
-            raise Exception(f"Token request has status code {response.status_code}")
+            raise Exception(f"Token request has status code {response.status_code} and response body {response.text}")
 
         else:
 
             return response.json()["access_token"]
 
     def upload_file(self, file: Path, url: str):
+
+        print("Uploading file using the following url: {url}".format(url=url))
 
         if not file.exists():
             raise Exception(f"file {file.absolute()} does not exist")
@@ -104,7 +106,7 @@ class Client:
 
         self.upload_file(file,url)
 
-    def upload_batch_to_api_from_local_parallel(self,local_directory: str, user_defined_path: str):
+    def upload_batch(self,local_directory: str, user_defined_path: str):
 
         files = self.list_files_in_local_directory(local_directory)
 

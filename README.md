@@ -1,10 +1,15 @@
+## MassIQ Client package
 
+This python package is a client package for the MassIQ API. The client object is configured exclusively through the environment.
+Required environmental variables to configure the API to connect against
 
+    DOMAIN
+    SERVICE_PORT
 
-C:\Users\janni\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\Roaming\pypoetry\venv\Scripts
+Your authentication credentials are provided by massflows and must be stored in the following environmental variables
 
-
-C:\Users\janni\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\Local\pypoetry\Cache\virtualenvs\mass-iq-zYbYysB_-py3.13\Scripts
+    USER_APP_CLIENT_ID
+    USER_APP_CLIENT_SECRET
 
 
 ## Dependency Management
@@ -12,17 +17,4 @@ C:\Users\janni\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n
 This project uses Poetry to manage dependencies and build the python package.
 
 
-## Configuration
-
-The client object is completely configured through the environment.
-
-You need to set the following environmental variables:
-
-HOST
-PORT
-
-The OIDC secrets to access the API are stored in the following variables
-
-USER_APP_CLIENT_ID
-USER_APP_CLIENT_SECRET
 
