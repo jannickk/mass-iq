@@ -33,21 +33,3 @@ jobs:
         run: |
           poetry version $RELEASE_VERSION
           poetry build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-  publish:
-    runs-on: ubuntu-latest
-    environment:
-      name: release
-    permissions:
-      id-token: write
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: dist
-          path: dist/
-      - name: Publish distribution to PyPi
-        uses: pypa/gh-action-pypi-publish@release/v1
