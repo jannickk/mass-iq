@@ -47,8 +47,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build
-    environment:
-      name: release
     permissions:
       id-token: write
     steps:
