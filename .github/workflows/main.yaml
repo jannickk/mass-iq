@@ -14,22 +14,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install Poetry
-        run:
-          curl -sSL https://install.python-poetry.org | python3 -
-      - name: Assign version
         run: |
-          export revision=$(git describe --tag | grep -E "^[0-9]+\.[0-9]+\.[0-9A-Za-z]+" -o)
-          echo "VERSION=$revision" >> $GITHUB_ENV
-
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
       - name: Checkout source
         uses: actions/checkout@v4
-
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: print release
+        run: |
+          echo $RELEASE_VERSION
+          echo ${{ env.RELEASE_VERSION }}
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-
       - name: Build package
         run: |
-          poetry version $revision
+          poetry version $RELEASE_VERSION
           poetry build
