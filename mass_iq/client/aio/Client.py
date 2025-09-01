@@ -1,4 +1,4 @@
-from config.config import Settings
+from mass_iq.config.config import Settings
 
 
 class Client:

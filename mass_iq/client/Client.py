@@ -1,6 +1,4 @@
-from requests import Session
-
-from config.config import Settings
+from mass_iq.config.config import Settings
 import concurrent.futures
 from pathlib import Path
 import requests

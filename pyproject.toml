@@ -6,8 +6,7 @@ readme = "README.md"
 version = "1.0.0"
 
 packages = [
-    { include = "client" },
-    { include = "config" },
+    { include = "mass_iq" },
 ]
 
 [tool.poetry.dependencies]
