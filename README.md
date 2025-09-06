@@ -15,6 +15,7 @@ Your authentication credentials are provided by massflows and must be stored in 
 ## Dependency Management
 
 This project uses Poetry to manage dependencies and build the python package.
+All dependencies are managed so that they are consistent with the Google Colaboratory Pyton environment.
 
 
 

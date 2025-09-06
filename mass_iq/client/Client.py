@@ -1,3 +1,4 @@
+
 from mass_iq.config.config import Settings
 import concurrent.futures
 from pathlib import Path
@@ -6,6 +7,9 @@ import re
 import urllib
 from tenacity import retry, stop_after_attempt
 from urllib.parse import urljoin
+import json
+
+
 
 class Client:
 
@@ -13,36 +17,22 @@ class Client:
 
         self.__config= Settings()
 
+        self.proteomics= ProteomicsClient()
+
+    @property
+    def config(self):
+        return self.__config
+
 
     def _build_url(self, path: str, parameter: dict = None) -> str:
+
         if parameter is None:
+
             return urljoin(self.__config.base_url + "/", path.lstrip("/"))
+
         else:
+
             return urljoin(self.__config.base_url + "/", path.lstrip("/"))+"?"+urllib.parse.urlencode(parameter)
-
-    @retry(stop=stop_after_attempt(3))
-    def get_access_token(self) -> str:
-
-        post_body = {
-            "scope": "https://graph.microsoft.com/.default",
-            "client_id": self.__config.USER_APP_CLIENT_ID,
-            "client_secret": self.__config.USER_APP_CLIENT_SECRET,
-            "grant_type": "client_credentials"
-        }
-
-        response = requests.post(
-            url=self.__config.OIDC_TOKEN_URL,
-            data=urllib.parse.urlencode(post_body),
-            headers={'Content-Type': 'application/x-www-form-urlencoded'}
-        )
-
-        if response.status_code != 200:
-
-            raise Exception(f"Token request has status code {response.status_code} and response body {response.text}")
-
-        else:
-
-            return response.json()["access_token"]
 
     def upload_file(self, file: Path, url: str):
 
@@ -65,7 +55,7 @@ class Client:
             response = requests.post(
                 url,
                 headers={
-                    "Authorization": f"Bearer {self.get_access_token()}"
+                    "Authorization": f"Bearer {self.config.access_token}"
                 },
                 files=files,
                 verify=self.__config.TLS_VERIFY,
@@ -125,5 +115,51 @@ class Client:
 
 
 
+class ProteomicsClient:
 
+    def __init__(self):
+        pass
 
+    @staticmethod
+    def get_isolation_window_for_transition(client:Client,transition, data_reference):
+
+        response = requests.post(f"{client.config.base_url}/data/isolation-windows/by-mz-value",
+            data=json.dumps(
+                {
+                        "mz_target": {
+                            "type": "mz-target",
+                            "value": transition['precursor_calculated_mz']
+                        },
+                        "data_reference": data_reference,
+                        "schema_version": "v2"
+                    }
+            ),
+            headers=client.config.authorization_header, verify=False
+        )
+
+        # Isolation Windows is a list of JSON objects
+
+        isolation_windows = response.json()
+
+        # mz may be in isolation window overlap, so we use the one where the distance of target m/z is maximal to border distance
+        # NOTE: For the example of the XICs below, PeakView took the isolation window with lower mz range, for comparability i adabted. To get the best window, make this `max()`
+
+        if len(isolation_windows) > 1:
+            # Calculate distance to borders for each window
+            get_distance = lambda window, transition: min(
+                abs(transition['precursor_calculated_mz'] - window['isolationWindowLowerEnd']),
+                abs(transition['precursor_calculated_mz'] - window['isolationWindowUpperEnd'])
+            )
+
+            # NOTE: For the example of the XICs below, PeakView took the isolation window with lower mz range, for comparability i adabted. To get the best window, make this `max()`
+            best_window = min(isolation_windows, key=lambda window: get_distance(window, transition)) #
+
+            return best_window
+
+        elif len(isolation_windows) == 1:
+
+            return isolation_windows[0]
+
+        else:
+            # No isolation window found
+            return None
