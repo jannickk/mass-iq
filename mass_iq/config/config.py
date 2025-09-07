@@ -17,9 +17,6 @@ class Settings(BaseSettings):
     # TTLCache per instance
     _cache = TTLCache(maxsize=10, ttl=3500)  # 3500 seconds TTL as the token itself is valid for 3600
 
-    # Cached computed field
-
-
     @property
     def base_url(self) -> str:
         return f"{self.HTTP_SCHEME}://{self.DOMAIN}:{self.SERVICE_PORT}{self.API_V1_STR}"
@@ -60,8 +57,8 @@ class Settings(BaseSettings):
                 self._cache["access_token"] = response.json()["access_token"]
                 return self._cache["access_token"]
 
-
-    @computed_field(return_type=str)
+    @property
+    @computed_field()
     def authorization_header(self) -> dict[str, str]:
 
         return {"Authorization": f"Bearer {self.access_token}"}
