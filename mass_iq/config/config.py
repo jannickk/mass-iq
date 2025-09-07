@@ -61,7 +61,6 @@ class Settings(BaseSettings):
                 return self._cache["access_token"]
 
 
-    @property
     @computed_field(return_type=str)
     def authorization_header(self) -> dict[str, str]:
 

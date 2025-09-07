@@ -14,8 +14,10 @@ python = "^3.12"
 requests = "2.32.4"
 aiohttp = "3.12.15"
 pydantic-settings = "^2.10.1"
-tenacity = "^9.1.2"
-cachetools = "^6.2.0"
+tenacity = "8.5.0"
+cachetools = "5.5.2"
+
+
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.4.1"
