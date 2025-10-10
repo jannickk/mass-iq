@@ -18,4 +18,10 @@ This project uses Poetry to manage dependencies and build the python package.
 All dependencies are managed so that they are consistent with the Google Colaboratory Pyton environment.
 
 
+You can run the tests locally by setting the required variables and run:
+
+    poetry run python -m pytest tests\Client.py --log-cli-level=INFO
+
+
+
 

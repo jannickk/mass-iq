@@ -19,7 +19,7 @@ import gzip
 from io import BytesIO
 import shutil
 
-
+logger = logging.getLogger(__name__)
 
 @pytest.fixture(scope="module")
 def library_file()-> Generator[Path, None, None]:
@@ -75,6 +75,14 @@ def test_that_client_object_can_be_created(client: Client) -> None:
 
     assert decoded_access_token['appid']==os.environ["USER_APP_CLIENT_ID"]
 
+
+def test_that_local_files_are_listed_correctly(client: Client) -> None:
+
+    files = client.list_files_in_local_directory("C:\\Users\\janni\\PycharmProjects\\mass-iq\\tests\\resources")
+
+
+    logger.info(f"files: {files}")
+    logger.info(f"type(files[0]): {type(files[0])}")
 
 
 def library_file_upload(library_file: Path, client: Client) -> None:
