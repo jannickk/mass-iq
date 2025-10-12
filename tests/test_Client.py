@@ -1,0 +1,181 @@
+from datetime import datetime
+from pathlib import Path, PosixPath
+from typing import Generator
+import jmespath
+import pytest
+import os
+import jwt
+from jwt import jwks_client, PyJWKClient
+from mass_iq.client.Client import Client
+import requests
+import logging
+
+from tests.utils import random_posix_path
+
+logging.basicConfig(level=logging.DEBUG)
+
+
+from io import BytesIO
+import requests
+from pathlib import Path
+import gzip
+from io import BytesIO
+import shutil
+
+logger = logging.getLogger(__name__)
+
+@pytest.fixture(scope="module")
+def library_file()-> Generator[Path, None, None]:
+
+    url = "https://github.com/HUPO-PSI/mzIdentML/raw/refs/heads/master/examples/1_2examples/PeptideShaker_mzid_1_2_example/PeptideShaker_mzid_1_2_example.mzid.gz"
+
+    file_path = Path("PeptideShaker_mzid_1_2_example.mzid")
+
+    # download and decompress directly to disk
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
+        with gzip.open(r.raw, "rb") as gz:
+            with open(file_path, "wb") as out_file:
+                shutil.copyfileobj(gz, out_file)
+
+    yield file_path
+
+
+    file_path.unlink()
+
+@pytest.fixture(scope="module")
+def client()->Generator[Client,None,None]:
+
+    # The Client object is completely configured through the environment
+    client = Client()
+
+    yield client
+
+def test_that_client_object_can_be_created(client: Client) -> None:
+
+    start= datetime.now()
+    access_token=client.config.access_token
+    end = datetime.now()
+
+    logging.debug(f"Took {end - start} seconds")
+
+    start = datetime.now()
+    access_token = client.config.access_token
+    end = datetime.now()
+
+    logging.debug(f"Took {end - start} seconds")
+
+    header = jwt.get_unverified_header(access_token)
+
+    jwks_uri = "https://login.microsoftonline.com/f11e977c-a565-424b-b114-70151fe16cd0/discovery/v2.0/keys"
+
+    jwks = PyJWKClient(jwks_uri)
+
+    signing_key = jwks.get_signing_key_from_jwt(client.config.access_token)
+
+    # Decode and validate
+    decoded_access_token = jwt.decode(client.config.access_token, algorithms="RS256", options={"verify_signature": False})
+
+    assert decoded_access_token['appid']==os.environ["USER_APP_CLIENT_ID"]
+
+
+def test_that_local_files_are_listed_correctly(client: Client) -> None:
+
+    current_working_dir = Path(__file__).parent
+
+    library_directory = current_working_dir / "resources" / "library"
+
+    files = client.list_files_in_local_directory(library_directory)
+
+    assert len(files)==2
+
+def test_library_file_upload_from_directory(client: Client) -> None:
+
+    current_working_dir = Path(__file__).parent
+
+    library_directory = current_working_dir / "resources" /"library"
+
+    user_defined_path = random_posix_path()
+
+    client.upload_library_files(library_directory, user_defined_path)
+
+    response_get_libraries = requests.get(
+        f"{client.config.base_url}/libraries/",
+        headers={"Authorization": f"Bearer {client.config.access_token}"},
+        verify=False
+    )
+
+    response = response_get_libraries.json()
+
+    logger.info(f"Obtained following response from source_file endpoint {response}")
+
+    assert user_defined_path in jmespath.search("[*].user_defined_path", response)
+
+def test_library_file_upload_from_file(client: Client) -> None:
+
+    current_working_dir = Path(__file__).parent
+
+    library_directory = current_working_dir / "resources" / "library" / "library.mzid"
+
+    user_defined_path = random_posix_path()
+
+    client.upload_library_files(library_directory, user_defined_path)
+
+    response_get_libraries = requests.get(
+        f"{client.config.base_url}/libraries/",
+        headers={"Authorization": f"Bearer {client.config.access_token}"},
+        verify=False
+    )
+
+    response = response_get_libraries.json()
+
+    logger.info(f"Obtained following response from source_file endpoint {response}")
+
+    assert user_defined_path in jmespath.search("[*].user_defined_path", response)
+
+def test_source_file_upload_from_directory(client: Client) -> None:
+
+    current_working_dir = Path(__file__).parent
+
+    source_file_directory = current_working_dir / "resources" /"source_file"
+
+    user_defined_path = random_posix_path()
+
+    client.upload_source_files(source_file_directory, user_defined_path)
+
+    response_get_sourcefiles = requests.get(
+        f"{client.config.base_url}/sourcefiles/",
+        headers={"Authorization": f"Bearer {client.config.access_token}"},
+        verify=False
+    )
+
+    response = response_get_sourcefiles.json()
+
+    logger.info(f"Obtained following response from source_file endpoint {response}")
+
+    assert user_defined_path in jmespath.search("[*].user_defined_path", response)
+
+
+def test_source_file_upload_from_file(client: Client) -> None:
+
+    current_working_dir = Path(__file__).parent
+
+    library_directory = current_working_dir / "resources" / "source_file" / "file.wiff"
+
+    user_defined_path = random_posix_path()
+
+    client.upload_source_files(library_directory, user_defined_path)
+
+    response_get_sourcefiles = requests.get(
+        f"{client.config.base_url}/sourcefiles/",
+        headers={"Authorization": f"Bearer {client.config.access_token}"},
+        verify=False
+    )
+
+    response = response_get_sourcefiles.json()
+
+    logger.info(f"Obtained following response from source_file endpoint {response}")
+
+
+    assert user_defined_path in jmespath.search("[*].user_defined_path", response)
+

@@ -6,6 +6,9 @@ import urllib
 from tenacity import retry, stop_after_attempt
 from cachetools import TTLCache, cachedmethod, cached
 import operator
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
 
@@ -33,6 +36,7 @@ class Settings(BaseSettings):
             return self._cache["access_token"]
         else:
 
+            logger.info(f"Using the following client secret: {self.USER_APP_CLIENT_SECRET}")
             post_body = {
                 "scope": "https://graph.microsoft.com/.default",
                 "client_id": self.USER_APP_CLIENT_ID,
