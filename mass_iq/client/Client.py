@@ -1,7 +1,8 @@
+import logging
 
 from mass_iq.config.config import Settings
 import concurrent.futures
-from pathlib import Path
+from pathlib import Path, PosixPath, WindowsPath
 import requests
 import re
 import urllib
@@ -9,7 +10,7 @@ from tenacity import retry, stop_after_attempt
 from urllib.parse import urljoin
 import json
 
-
+logger = logging.getLogger(__name__)
 
 class Client:
 
@@ -34,9 +35,11 @@ class Client:
 
             return urljoin(self.__config.base_url + "/", path.lstrip("/"))+"?"+urllib.parse.urlencode(parameter)
 
-    def upload_file(self, file: Path, url: str):
+    def _upload_file(self, file: Path, url: str):
 
         print("Uploading file using the following url: {url}".format(url=url))
+        logger.info("Uploading file using the following url: {url}".format(url=url))
+
 
         if not file.exists():
             raise Exception(f"file {file.absolute()} does not exist")
@@ -72,34 +75,14 @@ class Client:
 
                 raise Exception(f"Encountered error in library upload")
 
-    def list_files_in_local_directory(self, local_directory: str) -> list[Path]:
+    def list_files_in_local_directory(self, local_directory: Path) -> list[Path]:
 
-        p = Path(local_directory)
+        files = local_directory.glob('*')  # a generator to get lists all files recursively
 
-        files = p.glob('*')  # a generator to get lists all files recursively
+        return [file for file in files if re.match(".*\\.wiff$|.*\\.wiff.scan$|.*\\.mzid", file.name)]
 
-        return [file for file in files if re.match(".*\\.wiff$|.*\\.wiff.scan$", file.name)]
 
-    ############# Resource specific endpoints ####################
-
-    def upload_library_file(self,file: Path, user_defined_path: str):
-
-        url = self._build_url(self.__config.ENDPOINTS["upload"]["libraries"], {"user_defined_path": user_defined_path})
-
-        self.upload_file(file,url)
-
-    def upload_source_file(self,file: Path, user_defined_path: str):
-
-        url = self._build_url(self.__config.ENDPOINTS["upload"]["sourcefiles"], {"user_defined_path": user_defined_path})
-
-        self.upload_file(file,url)
-
-    def upload_batch(self,local_directory: str, user_defined_path: str):
-
-        files = self.list_files_in_local_directory(local_directory)
-
-        print("Found the following files")
-        print(f"{files}")
+    def _upload_files(self, files:list[Path], url):
 
         file_range = list(range(0, len(files), self.__config.PARALLEL_THREADS_UPLOAD))
 
@@ -109,9 +92,42 @@ class Client:
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.__config.PARALLEL_THREADS_UPLOAD) as executor:
 
-                futures = [executor.submit(self.upload_source_file, file, user_defined_path) for file in files[file_range[ind]:file_range[ind + 1]]]
+                futures = [executor.submit(self._upload_file, file, url) for file in files[file_range[ind]:file_range[ind + 1]]]
 
                 concurrent.futures.wait(futures)
+
+    def _choose_upload_method(self, file, url):
+
+        if not (type(file) == Path or type(file) == WindowsPath or type(file) == PosixPath):
+            raise Exception(f"file {file} must be a Path object")
+
+        if not file.exists():
+            raise Exception(f"file {file.absolute()} does not exist")
+
+        if file.is_file():
+
+            self._upload_file(file, url)
+
+        elif file.is_dir():
+
+            files = self.list_files_in_local_directory(file)
+
+            self._upload_files(files, url)
+
+
+    def upload_library_files(self,file: Path, user_defined_path: str):
+
+
+        url = self._build_url(self.__config.ENDPOINTS["upload"]["libraries"], {"user_defined_path": user_defined_path})
+
+        self._choose_upload_method(file, url)
+
+    def upload_source_files(self,file: Path, user_defined_path: str):
+
+
+        url = self._build_url(self.__config.ENDPOINTS["upload"]["sourcefiles"], {"user_defined_path": user_defined_path})
+
+        self._choose_upload_method(file,url)
 
 
 

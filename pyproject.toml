@@ -22,6 +22,7 @@ cachetools = "5.5.2"
 pytest = "^8.4.1"
 pyjwt = "^2.10.1"
 cryptography = "^45.0.7"
+jmespath = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 openapi-python-client = "^0.26.0"

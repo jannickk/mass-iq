@@ -14,14 +14,19 @@ Your authentication credentials are provided by massflows and must be stored in 
 
 ## Dependency Management
 
-This project uses Poetry to manage dependencies and build the python package.
-All dependencies are managed so that they are consistent with the Google Colaboratory Pyton environment.
+This project uses Poetry to manage dependencies and build the python package. In order to use Poetry on Windows
+use the installer of Python.org (and not the Windows Store Python Distribution) with the option
+"Add Python to PATH" checked. Then install Poetry with Powershell using
+
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+ 
+You can run the tests locally by setting the four required environmental variables and run:
 
 
-You can run the tests locally by setting the required variables and run:
+    poetry run pytest tests --log-cli-level=INFO
 
-    poetry run python -m pytest tests\Client.py --log-cli-level=INFO
+## Compatability
 
-
+**All dependencies are managed so that they are consistent with the Google Colaboratory Python environment.**
 
 
