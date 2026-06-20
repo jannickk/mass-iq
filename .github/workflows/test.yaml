@@ -1,7 +1,6 @@
 name: Python tests
 
 on:
-  push:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -31,3 +30,8 @@ jobs:
       - name: Run tests
         run: |
           pytest -q
+        env:
+          USER_APP_CLIENT_ID: ${{ secrets.USER_APP_CLIENT_ID }}
+          USER_APP_CLIENT_SECRET: ${{ secrets.USER_APP_CLIENT_SECRET }}  
+          DOMAIN: ${{ vars.DOMAIN }}
+          SERVICE_PORT: ${{ vars.SERVICE_PORT }}
