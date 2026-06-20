@@ -1,10 +1,10 @@
 name: Python tests
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
-
+  
 jobs:
   test:
     name: Test on Python ${{ matrix.python-version }}
