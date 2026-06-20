@@ -22,11 +22,10 @@ use the installer of Python.org (and not the Windows Store Python Distribution) 
  
 You can run the tests locally by setting the four required environmental variables and run:
 
-
     poetry run pytest tests --log-cli-level=INFO
 
 ## Compatability
 
 **All dependencies are managed so that they are consistent with the Google Colaboratory Python environment.**
-
+The most recent Google Collaboratory Python environment is 2026-03-25
 

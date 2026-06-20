@@ -1,0 +1,37 @@
+name: Python tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+  
+jobs:
+  test:
+    name: Test on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.12]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry and project deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          poetry config virtualenvs.create false
+          poetry install --no-interaction --no-ansi
+
+      - name: Run tests
+        run: |
+          pytest -q
+        env:
+          USER_APP_CLIENT_ID: ${{ secrets.USER_APP_CLIENT_ID }}
+          USER_APP_CLIENT_SECRET: ${{ secrets.USER_APP_CLIENT_SECRET }}  
+          DOMAIN: ${{ vars.DOMAIN }}
+          SERVICE_PORT: ${{ vars.SERVICE_PORT }}
