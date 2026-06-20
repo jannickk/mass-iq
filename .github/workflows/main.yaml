@@ -7,7 +7,7 @@ on:
     tags:
       - "*"   # Only run when you push a version tag, e.g. v0.1.0
 
-# install poet
+# install poetry
 jobs:
   build:
     runs-on: ubuntu-latest

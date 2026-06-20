@@ -75,11 +75,11 @@ class Client:
 
                 raise Exception(f"Encountered error in library upload")
 
-    def list_files_in_local_directory(self, local_directory: Path) -> list[Path]:
+    def _list_files_in_local_directory(self, local_directory: Path, pattern: str) -> list[Path]:
 
         files = local_directory.glob('*')  # a generator to get lists all files recursively
 
-        return [file for file in files if re.match(".*\\.wiff$|.*\\.wiff.scan$|.*\\.mzid", file.name)]
+        return [file for file in files if re.match(pattern, file.name)]
 
 
     def _upload_files(self, files:list[Path], url):
@@ -96,7 +96,7 @@ class Client:
 
                 concurrent.futures.wait(futures)
 
-    def _choose_upload_method(self, file, url):
+    def _choose_upload_method(self, file, url, pattern: str):
 
         if not (type(file) == Path or type(file) == WindowsPath or type(file) == PosixPath):
             raise Exception(f"file {file} must be a Path object")
@@ -110,7 +110,7 @@ class Client:
 
         elif file.is_dir():
 
-            files = self.list_files_in_local_directory(file)
+            files = self._list_files_in_local_directory(file, pattern)
 
             self._upload_files(files, url)
 
@@ -120,14 +120,14 @@ class Client:
 
         url = self._build_url(self.__config.ENDPOINTS["upload"]["libraries"], {"user_defined_path": user_defined_path})
 
-        self._choose_upload_method(file, url)
+        self._choose_upload_method(file, url, self.__config.LIBRARY_FILE_PATTERN)
 
     def upload_source_files(self,file: Path, user_defined_path: str):
 
 
         url = self._build_url(self.__config.ENDPOINTS["upload"]["sourcefiles"], {"user_defined_path": user_defined_path})
 
-        self._choose_upload_method(file,url)
+        self._choose_upload_method(file,url,self.__config.SOURCE_FILE_PATTERN)
 
 
 

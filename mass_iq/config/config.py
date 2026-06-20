@@ -1,11 +1,12 @@
 from typing import Literal, Dict
 import requests
-from pydantic import computed_field
+from pydantic import computed_field, field_validator
 from pydantic_settings import BaseSettings
 import urllib
 from tenacity import retry, stop_after_attempt
 from cachetools import TTLCache, cachedmethod, cached
 import operator
+import re
 import logging
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,6 @@ class Settings(BaseSettings):
             return self._cache["access_token"]
         else:
 
-            logger.info(f"Using the following client secret: {self.USER_APP_CLIENT_SECRET}")
             post_body = {
                 "scope": "https://graph.microsoft.com/.default",
                 "client_id": self.USER_APP_CLIENT_ID,
@@ -83,4 +83,14 @@ class Settings(BaseSettings):
                                 "sourcefiles": "upload/files/batch/sourcefiles"
                             }
                 }
+    
+    SOURCE_FILE_PATTERN: str =".*\\.wiff$|.*\\.wiff.scan$"
+    LIBRARY_FILE_PATTERN: str = ".*\\.mzid"
 
+    @field_validator('USER_APP_CLIENT_ID', mode='before')
+    @classmethod
+    def check_client_id(cls, value: str) -> str:
+        if re.match("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", value):
+            return value
+        else:
+            raise ValueError("Invalid client ID. Are you sure you set the Client ID correctly as environmental variable?")

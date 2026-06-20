@@ -79,13 +79,23 @@ def test_that_client_object_can_be_created(client: Client) -> None:
     assert decoded_access_token['appid']==os.environ["USER_APP_CLIENT_ID"]
 
 
-def test_that_local_files_are_listed_correctly(client: Client) -> None:
+def test_that_local_library_files_are_listed_correctly(client: Client) -> None:
 
     current_working_dir = Path(__file__).parent
 
     library_directory = current_working_dir / "resources" / "library"
 
-    files = client.list_files_in_local_directory(library_directory)
+    files = client._list_files_in_local_directory(library_directory,client.config.LIBRARY_FILE_PATTERN)
+
+    assert len(files)==2
+
+def test_that_local_source_files_are_listed_correctly(client: Client) -> None:
+
+    current_working_dir = Path(__file__).parent
+
+    source_file_directory = current_working_dir / "resources" / "source_file"
+
+    files = client._list_files_in_local_directory(source_file_directory,client.config.SOURCE_FILE_PATTERN)
 
     assert len(files)==2
 
